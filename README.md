@@ -10,7 +10,10 @@ The app does not use tokens, points, rewards, invites, or paid application fees.
 
 ## Production values
 
-The production app includes the Base app id meta tag, Talent app verification meta tag, and deployed `GardenSignal` contract address in source control. The attribution data suffix remains `0x` because no ERC-8021 attribution suffix has been provided.
+The production app includes the Base app id meta tag, Talent app verification meta tag, deployed `GardenSignal` contract address, and ERC-8021 attribution suffix in source control.
+
+- Build code: `bc_3gpfnckf`
+- Encoded attribution suffix: `0x62635f336770666e636b660b0080218021802180218021802180218021`
 
 ## Contract Source
 

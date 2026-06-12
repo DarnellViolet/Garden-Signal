@@ -343,7 +343,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,#fff7d7_0,#f8f5ed_28%,#e7f0e6_58%,#d7e8dc_100%)] px-4 py-4 text-[#20372d] sm:px-8 lg:px-10">
       <section className="mx-auto flex w-full max-w-6xl flex-col gap-5">
-        <header className="flex flex-col gap-3 rounded-lg border border-white/70 bg-white/72 p-4 shadow-sensor backdrop-blur md:flex-row md:items-center md:justify-between">
+        <header className="relative z-[100] flex flex-col gap-3 rounded-lg border border-white/70 bg-white/72 p-4 shadow-sensor backdrop-blur md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3">
             <div className="grid h-11 w-11 place-items-center rounded-lg bg-leaf text-white">
               <Leaf size={24} />
@@ -383,20 +383,28 @@ export default function Home() {
               </button>
             )}
             {walletOpen && (
-              <div className="absolute right-0 top-12 z-20 max-h-[70vh] w-72 overflow-y-auto rounded-lg border border-leaf/20 bg-white p-2 shadow-sensor">
-                {walletOptions.map((option) => (
-                  <button
-                    className="flex w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-sm font-bold transition hover:bg-linen disabled:cursor-not-allowed disabled:text-clay/70 disabled:hover:bg-transparent"
-                    disabled={Boolean(option.disabledReason)}
-                    key={option.id}
-                    type="button"
-                    onClick={() => openWalletOption(option)}
-                  >
-                    <span className="min-w-0 truncate">{option.label}</span>
-                    <span className={option.disabledReason ? "text-xs" : "text-xs text-leaf"}>{option.badge}</span>
-                  </button>
-                ))}
-              </div>
+              <>
+                <button
+                  aria-label="Close wallet menu"
+                  className="fixed inset-0 z-[900] cursor-default bg-transparent"
+                  type="button"
+                  onClick={() => setWalletOpen(false)}
+                />
+                <div className="absolute right-0 top-12 z-[1000] max-h-[70vh] w-72 overflow-y-auto rounded-lg border border-leaf/20 bg-white p-2 shadow-sensor">
+                  {walletOptions.map((option) => (
+                    <button
+                      className="flex w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-sm font-bold transition hover:bg-linen disabled:cursor-not-allowed disabled:text-clay/70 disabled:hover:bg-transparent"
+                      disabled={Boolean(option.disabledReason)}
+                      key={option.id}
+                      type="button"
+                      onClick={() => openWalletOption(option)}
+                    >
+                      <span className="min-w-0 truncate">{option.label}</span>
+                      <span className={option.disabledReason ? "text-xs" : "text-xs text-leaf"}>{option.badge}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         </header>

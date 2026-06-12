@@ -81,6 +81,15 @@ function numberText(value: unknown) {
   return typeof value === "bigint" ? value.toString() : "0";
 }
 
+type WalletOption = {
+  id: string;
+  label: string;
+  badge: string;
+  connector?: Connector;
+  disabledReason?: string;
+  url?: string;
+};
+
 export default function Home() {
   const { address, isConnected, chain } = useAccount();
   const { connectors, connect, isPending: isConnectPending } = useConnect({
@@ -209,6 +218,24 @@ export default function Home() {
     connect({ connector });
   }
 
+  function openWalletOption(option: WalletOption) {
+    if (option.disabledReason) {
+      setActivity(option.disabledReason);
+      return;
+    }
+
+    if (option.connector) {
+      connectWallet(option.connector);
+      return;
+    }
+
+    if (option.url) {
+      window.open(option.url, "_blank", "noopener,noreferrer");
+      setWalletOpen(false);
+      setActivity(`Opening ${option.label}`);
+    }
+  }
+
   function handleAction(action: GardenAction) {
     if (!isConnected) {
       setActivity("Connect a wallet first.");
@@ -242,6 +269,76 @@ export default function Home() {
 
   const connectedLabel = isConnected ? "Connected" : "Disconnected";
   const isBusy = isWritePending || isConfirming;
+  const connectorByType = (type: string) => connectors.find((connector) => connector.type === type);
+  const injectedConnector = connectorByType("injected");
+  const walletOptions: WalletOption[] = [
+    {
+      id: "base-account",
+      label: "Base Account",
+      badge: "Base",
+      connector: connectorByType("baseAccount")
+    },
+    {
+      id: "coinbase",
+      label: "Coinbase Wallet",
+      badge: "Base",
+      connector: connectorByType("coinbaseWallet")
+    },
+    {
+      id: "metamask",
+      label: "MetaMask",
+      badge: "Base",
+      connector: connectorByType("metaMask") ?? injectedConnector,
+      url: "https://metamask.io/download/"
+    },
+    {
+      id: "walletconnect",
+      label: "WalletConnect",
+      badge: walletConnectProjectId ? "QR" : "Needs ID",
+      connector: connectorByType("walletConnect"),
+      disabledReason: walletConnectProjectId ? undefined : "WalletConnect project ID is not configured."
+    },
+    {
+      id: "rainbow",
+      label: "Rainbow",
+      badge: "Injected",
+      connector: injectedConnector,
+      url: "https://rainbow.me/"
+    },
+    {
+      id: "trust",
+      label: "Trust Wallet",
+      badge: "Injected",
+      connector: injectedConnector,
+      url: "https://trustwallet.com/browser-extension"
+    },
+    {
+      id: "okx",
+      label: "OKX Wallet",
+      badge: "Injected",
+      connector: injectedConnector,
+      url: "https://www.okx.com/web3"
+    },
+    {
+      id: "rabby",
+      label: "Rabby Wallet",
+      badge: "Injected",
+      connector: injectedConnector,
+      url: "https://rabby.io/"
+    },
+    {
+      id: "safe",
+      label: "Safe",
+      badge: "App",
+      connector: connectorByType("safe")
+    },
+    {
+      id: "browser",
+      label: "Browser Wallet",
+      badge: "Injected",
+      connector: injectedConnector
+    }
+  ];
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,#fff7d7_0,#f8f5ed_28%,#e7f0e6_58%,#d7e8dc_100%)] px-4 py-4 text-[#20372d] sm:px-8 lg:px-10">
@@ -286,28 +383,19 @@ export default function Home() {
               </button>
             )}
             {walletOpen && (
-              <div className="absolute right-0 top-12 z-20 w-64 rounded-lg border border-leaf/20 bg-white p-2 shadow-sensor">
-                {connectors.map((connector) => (
+              <div className="absolute right-0 top-12 z-20 max-h-[70vh] w-72 overflow-y-auto rounded-lg border border-leaf/20 bg-white p-2 shadow-sensor">
+                {walletOptions.map((option) => (
                   <button
-                    className="flex w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-sm font-bold transition hover:bg-linen"
-                    key={connector.uid}
+                    className="flex w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-sm font-bold transition hover:bg-linen disabled:cursor-not-allowed disabled:text-clay/70 disabled:hover:bg-transparent"
+                    disabled={Boolean(option.disabledReason)}
+                    key={option.id}
                     type="button"
-                    onClick={() => connectWallet(connector)}
+                    onClick={() => openWalletOption(option)}
                   >
-                    <span className="min-w-0 truncate">{connector.name}</span>
-                    <span className="text-xs text-leaf">Base</span>
+                    <span className="min-w-0 truncate">{option.label}</span>
+                    <span className={option.disabledReason ? "text-xs" : "text-xs text-leaf"}>{option.badge}</span>
                   </button>
                 ))}
-                {!walletConnectProjectId && (
-                  <button
-                    className="flex w-full cursor-not-allowed items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-sm font-bold text-clay/70"
-                    disabled
-                    type="button"
-                  >
-                    <span className="min-w-0 truncate">WalletConnect</span>
-                    <span className="text-xs">Needs ID</span>
-                  </button>
-                )}
               </div>
             )}
           </div>

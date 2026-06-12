@@ -25,7 +25,7 @@ import {
   useWriteContract
 } from "wagmi";
 import { gardenSignalAbi } from "@/lib/abi";
-import { attributionDataSuffix, contractAddress } from "@/lib/wagmi";
+import { attributionDataSuffix, contractAddress, walletConnectProjectId } from "@/lib/wagmi";
 
 type GardenAction = {
   id: "sprout" | "bloom" | "breeze";
@@ -289,15 +289,25 @@ export default function Home() {
               <div className="absolute right-0 top-12 z-20 w-64 rounded-lg border border-leaf/20 bg-white p-2 shadow-sensor">
                 {connectors.map((connector) => (
                   <button
-                    className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm font-bold transition hover:bg-linen"
+                    className="flex w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-sm font-bold transition hover:bg-linen"
                     key={connector.uid}
                     type="button"
                     onClick={() => connectWallet(connector)}
                   >
-                    <span>{connector.name}</span>
+                    <span className="min-w-0 truncate">{connector.name}</span>
                     <span className="text-xs text-leaf">Base</span>
                   </button>
                 ))}
+                {!walletConnectProjectId && (
+                  <button
+                    className="flex w-full cursor-not-allowed items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-sm font-bold text-clay/70"
+                    disabled
+                    type="button"
+                  >
+                    <span className="min-w-0 truncate">WalletConnect</span>
+                    <span className="text-xs">Needs ID</span>
+                  </button>
+                )}
               </div>
             )}
           </div>

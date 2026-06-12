@@ -259,6 +259,10 @@ export default function Home() {
   const connectedLabel = isConnected ? "Connected" : "Disconnected";
   const isBusy = isWritePending || isConfirming;
   const connectorByType = (type: string) => connectors.find((connector) => connector.type === type);
+  const connectorById = (id: string) => connectors.find((connector) => connector.id === id);
+  const connectorByName = (name: string) => connectors.find((connector) => connector.name === name);
+  const okxConnector = connectorById("okxWallet") ?? connectorByName("OKX Wallet");
+  const browserConnector = connectorById("browserWallet") ?? connectorByName("Browser Wallet");
   const walletCandidates: Array<Omit<WalletOption, "connector"> & { connector?: Connector }> = [
     {
       id: "base-account",
@@ -279,10 +283,16 @@ export default function Home() {
       connector: connectorByType("metaMask")
     },
     {
+      id: "okx",
+      label: "OKX Wallet",
+      badge: "OKX",
+      connector: okxConnector
+    },
+    {
       id: "browser",
       label: "Browser Wallet",
       badge: "Injected",
-      connector: connectorByType("injected")
+      connector: browserConnector
     }
   ];
   const walletOptions = walletCandidates.filter((option): option is WalletOption => Boolean(option.connector));

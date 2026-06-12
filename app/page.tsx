@@ -85,9 +85,7 @@ type WalletOption = {
   id: string;
   label: string;
   badge: string;
-  connector?: Connector;
-  disabledReason?: string;
-  url?: string;
+  connector: Connector;
 };
 
 export default function Home() {
@@ -219,21 +217,12 @@ export default function Home() {
   }
 
   function openWalletOption(option: WalletOption) {
-    if (option.disabledReason) {
-      setActivity(option.disabledReason);
-      return;
-    }
-
     if (option.connector) {
       connectWallet(option.connector);
       return;
     }
 
-    if (option.url) {
-      window.open(option.url, "_blank", "noopener,noreferrer");
-      setWalletOpen(false);
-      setActivity(`Opening ${option.label}`);
-    }
+    setActivity(`${option.label} is not available in this browser.`);
   }
 
   function handleAction(action: GardenAction) {
@@ -270,8 +259,7 @@ export default function Home() {
   const connectedLabel = isConnected ? "Connected" : "Disconnected";
   const isBusy = isWritePending || isConfirming;
   const connectorByType = (type: string) => connectors.find((connector) => connector.type === type);
-  const injectedConnector = connectorByType("injected");
-  const walletOptions: WalletOption[] = [
+  const walletCandidates: Array<Omit<WalletOption, "connector"> & { connector?: Connector }> = [
     {
       id: "base-account",
       label: "Base Account",
@@ -288,57 +276,28 @@ export default function Home() {
       id: "metamask",
       label: "MetaMask",
       badge: "Base",
-      connector: connectorByType("metaMask") ?? injectedConnector,
-      url: "https://metamask.io/download/"
-    },
-    {
-      id: "walletconnect",
-      label: "WalletConnect",
-      badge: walletConnectProjectId ? "QR" : "Needs ID",
-      connector: connectorByType("walletConnect"),
-      disabledReason: walletConnectProjectId ? undefined : "WalletConnect project ID is not configured."
-    },
-    {
-      id: "rainbow",
-      label: "Rainbow",
-      badge: "Injected",
-      connector: injectedConnector,
-      url: "https://rainbow.me/"
-    },
-    {
-      id: "trust",
-      label: "Trust Wallet",
-      badge: "Injected",
-      connector: injectedConnector,
-      url: "https://trustwallet.com/browser-extension"
-    },
-    {
-      id: "okx",
-      label: "OKX Wallet",
-      badge: "Injected",
-      connector: injectedConnector,
-      url: "https://www.okx.com/web3"
-    },
-    {
-      id: "rabby",
-      label: "Rabby Wallet",
-      badge: "Injected",
-      connector: injectedConnector,
-      url: "https://rabby.io/"
-    },
-    {
-      id: "safe",
-      label: "Safe",
-      badge: "App",
-      connector: connectorByType("safe")
+      connector: connectorByType("metaMask")
     },
     {
       id: "browser",
       label: "Browser Wallet",
       badge: "Injected",
-      connector: injectedConnector
+      connector: connectorByType("injected")
     }
   ];
+  const walletOptions = walletCandidates.filter((option): option is WalletOption => Boolean(option.connector));
+
+  if (walletConnectProjectId) {
+    const walletConnectConnector = connectorByType("walletConnect");
+    if (walletConnectConnector) {
+      walletOptions.splice(3, 0, {
+        id: "walletconnect",
+        label: "WalletConnect",
+        badge: "QR",
+        connector: walletConnectConnector
+      });
+    }
+  }
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,#fff7d7_0,#f8f5ed_28%,#e7f0e6_58%,#d7e8dc_100%)] px-4 py-4 text-[#20372d] sm:px-8 lg:px-10">
@@ -390,17 +349,16 @@ export default function Home() {
                   type="button"
                   onClick={() => setWalletOpen(false)}
                 />
-                <div className="absolute right-0 top-12 z-[1000] max-h-[70vh] w-72 overflow-y-auto rounded-lg border border-leaf/20 bg-white p-2 shadow-sensor">
+                <div className="absolute right-0 top-12 z-[1000] w-64 rounded-lg border border-leaf/20 bg-white p-2 shadow-sensor">
                   {walletOptions.map((option) => (
                     <button
-                      className="flex w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-sm font-bold transition hover:bg-linen disabled:cursor-not-allowed disabled:text-clay/70 disabled:hover:bg-transparent"
-                      disabled={Boolean(option.disabledReason)}
+                      className="flex w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-sm font-bold transition hover:bg-linen"
                       key={option.id}
                       type="button"
                       onClick={() => openWalletOption(option)}
                     >
                       <span className="min-w-0 truncate">{option.label}</span>
-                      <span className={option.disabledReason ? "text-xs" : "text-xs text-leaf"}>{option.badge}</span>
+                      <span className="text-xs text-leaf">{option.badge}</span>
                     </button>
                   ))}
                 </div>
